@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="38acfc7c-1f57-49a9-86d7-e2e67a407cc9" >
+		<http:listener-connection host="0.0.0.0" port="8089" />
+	</http:listener-config>
+	<flow name="postCarBookings" doc:id="6024cfe0-83dc-49a3-a347-8d17a776572f" >
+		<set-variable value="#[payload.partner]" doc:name="carBookingPartner" doc:id="3ec6db6d-8a4e-4771-8587-7d71ca1bdcca" variableName="carBookingPartner"/>
+		<choice doc:name="Choice" doc:id="e0420f8a-b53f-45e2-9afe-322d3ebed38f" >
+			<when expression="#[payload.partner == 'uber']">
+				<http:request method="POST" doc:name="Uber_CarBookingRequest" doc:id="a5b147a8-19bd-4375-aae1-64cddfe1b1df" config-ref="Uber_HTTP_Request_configuration" path="/api/uber"/>
+				<ee:transform doc:name="Transform Message" doc:id="29688a14-d955-4f57-9f31-21ed026017ce" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	message:"Hi " ++ payload01.firstName ++ ", Your car is booked successfully" as String,
+	carBookingDetails: {
+		Partner: payload01.partner,
+		Source: payload01.source,
+		Destination: payload01.destination,
+		ScheduledDate: now() as Date {format: "yyyy/MM/dd"} as String,
+		ScheduledTime: now() as String {format : "HH:mm:ss"},
+		TypeOfCar: payload01.typeOfCar,
+		NoOfSeatsBooked: payload01.noOfSeats
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression="#[payload.partner == 'ola']">
+				<http:request method="POST" doc:name="Ola_CarBookingRequest" doc:id="ed117674-676a-4350-83b9-b16d9956f6b8" config-ref="Ola_HTTP_Request_configuration" path="/api/ola"/>
+				<ee:transform doc:name="Transform Message" doc:id="2b0eae39-f79e-4445-b09f-16595e1e81d1" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	message:"Hi " ++ payload01.firstName ++ ", Your car is booked successfully" as String,
+	carBookingDetails: {
+		Partner: payload01.partner,
+		Source: payload01.source,
+		Destination: payload01.destination,
+		ScheduledDate: now() as Date {format: "yyyy/MM/dd"} as String,
+		ScheduledTime: now() as String {format : "HH:mm:ss"},
+		TypeOfCar: payload01.typeOfCar,
+		NoOfSeatsBooked: payload01.noOfSeats
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<set-payload value="No Cars available for the selected destination" doc:name="Set Payload" doc:id="0111abf5-6514-471c-ad38-ed535134cbea" />
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="getCarsAvailable" doc:id="3ec02176-e62b-46bc-b311-a11358da2560" >
+		<set-variable value="#[attributes.queryParams.source]" doc:name="source variable" doc:id="9670e776-2a16-411c-824e-497c3574f673" variableName="source"/>
+		<set-variable value="#[attributes.queryParams.destination]" doc:name="destination variable" doc:id="a996f35a-a698-49ce-aff5-7f1e19cdbb25" variableName="destination"/>
+		<choice doc:name="Choice" doc:id="22d843cf-7b26-4515-bf98-27bace585afd" >
+			<when expression="#[vars.source == 'bhugaon' and vars.destination == 'vishrantwadi']">
+				<http:request method="GET" doc:name="RequestUberPartner" doc:id="58676e28-8d8a-43db-8efb-8dcaa8db963e" config-ref="Uber_HTTP_Request_configuration" path="/api/uber"/>
+				<foreach doc:name="Check For the available car as per the source and destination" doc:id="5d58db09-e447-410b-8287-61f8bfa46129" >
+					<choice doc:name="checkCarsAvailable" doc:id="37540934-804e-4785-b4ec-b2c39d04eb70" >
+						<when expression="#[vars.source == payload.source and vars.destination == payload.destination]">
+							<ee:transform doc:name="Transform Message" doc:id="1af000b6-0540-4dba-a3b9-f58aa16f7ae0" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</when>
+						<otherwise >
+							<set-payload value="No cars available for the selected destination" doc:name="Set Payload" doc:id="ee0d9220-f18a-4fcc-a59c-32f124b0aa0a" />
+						</otherwise>
+					</choice>
+				</foreach>
+			</when>
+			<when expression="#[vars.source == 'kundalhalli' and vars.destination == 'whitefield']">
+				<http:request method="GET" doc:name="RequestOlaPartner" doc:id="ae85cf24-9114-4830-9d69-febd5ec4295b" config-ref="Ola_HTTP_Request_configuration" path="/api/ola"/>
+				<foreach doc:name="Check For the available car as per the source and destination" doc:id="9b653269-2073-48f9-b0b0-ff354901e46b" >
+					<choice doc:name="checkCarsAvailable" doc:id="6260caa4-f72d-4803-b6c5-981127cb1580" >
+						<when expression="#[vars.source == payload.source and vars.destination == payload.destination]" >
+							<ee:transform doc:name="Transform Message" doc:id="cc7021a3-d3e1-45cb-99a2-a96728c30c8d" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+						</when>
+						<otherwise >
+							<set-payload value="No cars available for the selected destination" doc:name="Set Payload" doc:id="d95f65b1-c302-4c7d-8e74-418141174917" />
+						</otherwise>
+					</choice>
+				</foreach>
+			</when>
+			<otherwise >
+				<set-payload value="No cars available for the selected destination" doc:name="Set Payload" doc:id="540f9f3f-1be0-4c09-93ce-d7693a32cae3" />
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="SchedulerToSendBookingDetailsToRespectivePartners" doc:id="fd94cada-172a-4a83-af0c-4baabf599171" initialState="stopped">
+		<scheduler doc:name="SchedulerRunsEveryOneHour" doc:id="d032f2e3-3e4d-4e23-b259-3cc73c0629e0" >
+			<scheduling-strategy >
+				<fixed-frequency timeUnit="HOURS" frequency="1"/>
+			</scheduling-strategy>
+		</scheduler>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="b725f757-9135-43da-9fd8-e9d663aa75c9" >
+			<route >
+				<file:read doc:name="ReadOlaBookings" doc:id="d0519dcc-5a44-402e-813c-01754aa0ee88" path="olaCarBookings.csv" config-ref="Ola_File_Config"/>
+				<file:write doc:name="WriteToFS" doc:id="2cde17f4-8897-490b-ab8f-455b83ab5715" path="OlaPartnerBookings\olabookings.csv" config-ref="CarBookings_File_Config"/>
+			</route>
+			<route >
+				<file:read doc:name="ReadUberBookings" doc:id="e59f57a9-5f17-49fb-8cb5-766f8dc28c15" path="uberCarBookings.csv" config-ref="Uber_File_Config"/>
+				<file:write doc:name="WriteToFS" doc:id="63ecf2f3-903d-4740-a32f-338c2d2a1cf9" path="UberPartnerBookings\uberbookings.csv" config-ref="CarBookings_File_Config"/>
+			</route>
+		</scatter-gather>
+	</flow>
+	<flow name="aternativeFlowForSendingCarBookingData" doc:id="67b06b82-f771-4bd4-a1d2-0d14ba148a78" initialState="stopped">
+		<scheduler doc:name="Scheduler" doc:id="b4e1bc42-7c9b-411c-88be-65686d103a5e" >
+			<scheduling-strategy >
+				<fixed-frequency timeUnit="DAYS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="45d07c54-dc08-4be1-8264-def0b970489e" >
+			<route >
+				<http:request method="GET" doc:name="getOlaPartnerDetails" doc:id="28322299-ea09-433f-9d45-3b1fad8018af" config-ref="Ola_HTTP_Request_configuration" path="/api/ola"/>
+				<file:write doc:name="WriteOlaBookings" doc:id="696022ba-f421-46bd-98aa-54a0d8a76ed0" config-ref="CarBookings_File_Config" path="/olaBookings" mode="APPEND"/>
+				<email:send doc:name="Send" doc:id="4bbee1c7-d1a5-4a6d-9e46-dc73c156ec4a" config-ref="Email_SMTP" fromAddress='#["anjalichavan256@gmail.com"]' subject='#["Ola Bookings Data"]'>
+					<email:to-addresses >
+						<email:to-address value="anjali.v.chavan@apisero.com" />
+					</email:to-addresses>
+					<email:attachments ><![CDATA[#[{
+"olabookings.csv" : payload
+}]]]></email:attachments>
+				</email:send>
+			</route>
+			<route >
+				<http:request method="GET" doc:name="getUberPartnerDetails" doc:id="9e5c694f-fb2a-4628-95b9-5ec8ced0bda5" path="/api/uber" config-ref="Uber_HTTP_Request_configuration"/>
+				<file:write doc:name="WriteUberBookings" doc:id="cab3403a-9c0f-4a23-9c9b-fed65265f71d" config-ref="CarBookings_File_Config" path="/uberBookings" mode="APPEND"/>
+				<email:send doc:name="Send" doc:id="4bc1fe27-24fb-4147-b4ec-f1e88ea10952" config-ref="Email_SMTP" fromAddress='#["anjali.v.chavan@apisero.com"]'>
+					<email:to-addresses >
+						<email:to-address value='"anjali.v.chavan@apisero.com"' />
+					</email:to-addresses>
+				</email:send>
+			</route>
+		</scatter-gather>
+	</flow>
+</mule>

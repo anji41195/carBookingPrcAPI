@@ -1,0 +1,45 @@
+#%RAML 1.0
+title: bookmyholiday-carbooking-prc-api
+
+uses:
+  carbooking_lib: exchange_modules/152d1991-08cd-4b6e-a747-9013bbff4bce/bookmyholiday-library/1.0.0/bookmyholiday-library.raml
+
+/cars:
+  get:
+    description: get the details of the cars available
+    is:
+      
+    queryParameters:
+      source:
+        type: string
+        required: true
+      destination:
+        type: string
+        required: true
+
+    responses:
+      200:
+        body:
+          application/json:
+            type: carbooking_lib.get_carbooking_response_datatype[]
+            examples:
+              output: !include exchange_modules/152d1991-08cd-4b6e-a747-9013bbff4bce/get_carbooking_response_example/1.0.0/get_carbooking_response_example.raml
+              
+              
+/carbookings:
+  description: book your car
+  post: 
+    is: 
+    body:
+      application/json:
+        type: carbooking_lib.post_carbooking_request_datatype
+        examples: 
+          input: !include exchange_modules/152d1991-08cd-4b6e-a747-9013bbff4bce/post_carbooking_request_example/1.0.0/post_carbooking_request_example.raml
+    responses:
+      201:
+        body:
+          application/json:
+            type: carbooking_lib.post_carbooking_response_datatype
+            examples:
+              output: !include exchange_modules/152d1991-08cd-4b6e-a747-9013bbff4bce/post_carbooking_response_example/1.0.0/post_carbooking_response_example.raml
+    

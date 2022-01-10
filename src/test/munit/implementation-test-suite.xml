@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="implementation-test-suite.xml" />
+	<munit:test name="implementation-test-suite-postCarBookingsTest" doc:id="7715626b-1f42-45c6-86e1-63113ed22c13" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to postCarBookings" doc:id="1c33329d-12d8-460b-9e7d-8aea4381f3c1" name="postCarBookings"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="implementation-test-suite-getCarsAvailableTest" doc:id="35b6ab28-93dc-49c0-a729-e691e773170f" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getCarsAvailable" doc:id="0d666db0-0e30-41e4-be9e-f796c83dc097" name="getCarsAvailable"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="implementation-test-suite-SchedulerToSendBookingDetailsToRespectivePartnersTest" doc:id="b0710fb7-385f-4568-a03c-56bf6bd8cc0c" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to SchedulerToSendBookingDetailsToRespectivePartners" doc:id="69ada3dc-75ec-4c7f-a267-9087709ee1fc" name="SchedulerToSendBookingDetailsToRespectivePartners"/>
+		</munit:execution>
+	</munit:test>
+
+
+</mule>
