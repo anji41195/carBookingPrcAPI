@@ -113,7 +113,7 @@ payload]]></ee:set-payload>
 			</otherwise>
 		</choice>
 	</flow>
-	<flow name="SchedulerToSendBookingDetailsToRespectivePartners" doc:id="fd94cada-172a-4a83-af0c-4baabf599171" initialState="stopped">
+	<flow name="SchedulerToSendBookingDetailsToRespectivePartners" doc:id="fd94cada-172a-4a83-af0c-4baabf599171" initialState="started">
 		<scheduler doc:name="SchedulerRunsEveryOneHour" doc:id="d032f2e3-3e4d-4e23-b259-3cc73c0629e0" >
 			<scheduling-strategy >
 				<fixed-frequency timeUnit="HOURS" frequency="1"/>
